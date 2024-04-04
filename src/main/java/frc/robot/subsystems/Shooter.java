@@ -89,63 +89,32 @@ public class Shooter extends SubsystemBase {
      * subsystem base object for arm
      */
     public Shooter() {
-        this.ShooterMotor1 = new CANSparkMax(7, MotorType.kBrushless);
-        this.ShooterMotor2 = new CANSparkMax(8, MotorType.kBrushless);
-        ShooterMotor1.restoreFactoryDefaults();
-        ShooterMotor2.restoreFactoryDefaults();
+        this.ShooterMotor1 = new CANSparkMax(Constants.canID.ShooterMotor1, MotorType.kBrushless);
+        this.ShooterMotor2 = new CANSparkMax(Constants.canID.ShooterMotor2, MotorType.kBrushless);
+        
+        ShooterMotor2.follow(ShooterMotor1,true);
         this.ShooterMotor1.setInverted(true);
-        this.ShooterMotor2.setInverted(false);
-        leftEncoder = ShooterMotor1.getEncoder();
-        rightEncoder = ShooterMotor2.getEncoder();
+        
         this.ShooterMotor1.burnFlash();
         this.ShooterMotor2.burnFlash();
+
+        leftEncoder = ShooterMotor1.getEncoder();
+
     }
-
-    /**
-   * Returns a command that will execute a quasistatic test in the given direction.
-   *
-   * @param direction The direction (forward or reverse) to run the test in
-   */
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.quasistatic(direction);
-  }
-
-  /**
-   * Returns a command that will execute a dynamic test in the given direction.
-   *
-   * @param direction The direction (forward or reverse) to run the test in
-   */
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutine.dynamic(direction);
-  }
 
   public void TargetFeedforward(double velocity) {
     ShooterMotor1.setVoltage(leftFeedforward.calculate(velocity));
-    ShooterMotor2.setVoltage(rightFeedforward.calculate(velocity));
   }
 
-    public void ShooterMotor1Stop() {
+    public void ShooterStop() {
         this.ShooterMotor1.stopMotor();
     }
-    
-    public void ShooterMotor2Stop() {
-        this.ShooterMotor2.stopMotor();
-    }
 
-    public void ShooterMotor1Forward(double power) {
+    public void timedShooter(double power) {
         this.ShooterMotor1.set(power);
     }
 
-    public void ShooterMotor1Backward(double power) {
-        this.ShooterMotor1.set(-power);
+    public void ShooterRun(double power) {
+        this.ShooterMotor1.set(power);
     }
-
-    public void ShooterMotor2Forward(double power) {
-        this.ShooterMotor2.set(power);
-    }
-
-    public void ShooterMotor2Backward(double power) {
-        this.ShooterMotor2.set(-power);
-    }
-
 }

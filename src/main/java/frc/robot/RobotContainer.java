@@ -20,29 +20,26 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.arm.ManualArm;
-import frc.robot.commands.arm.StopArm;
-import frc.robot.commands.autos.complex.Complex;
-import frc.robot.commands.autos.simples.DriveTrainAutoTimeBased;
-import frc.robot.commands.autos.simples.IntakeBackwardAuto;
-import frc.robot.commands.autos.simples.IntakeForwardAuto;
-import frc.robot.commands.autos.simples.LiftUpAuto;
-import frc.robot.commands.autos.simples.ShooterForwardAuto;
+import frc.robot.commands.Indexer.IndexIn;
+import frc.robot.commands.Indexer.IndexStop;
+import frc.robot.commands.Indexer.timedIndexOut;
+import frc.robot.commands.Pivot.ManualPivot;
+import frc.robot.commands.Pivot.StopPivot;
+import frc.robot.commands.Indexer.IndexOut;
 import frc.robot.commands.drive.DriveTrainCommand;
 import frc.robot.commands.drive.DriveTrainCommandSlower;
 import frc.robot.commands.intake.IntakeBackward;
 import frc.robot.commands.intake.IntakeForward;
 import frc.robot.commands.intake.IntakeStop;
-import frc.robot.commands.lift.LiftDown;
-import frc.robot.commands.lift.LiftStop;
-import frc.robot.commands.lift.LiftUp;
-import frc.robot.commands.shooter.ShooterSet;
+import frc.robot.commands.shooter.ShooterRun;
 import frc.robot.commands.shooter.ShooterStop;
+import frc.robot.commands.shooter.autoSpeaker;
+import frc.robot.commands.shooter.autoAmp;
 import frc.robot.commands.shooter.TargetFeedforward;
-import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.Pivot;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Lift;
+import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Shooter;
 
 
@@ -58,8 +55,8 @@ public class RobotContainer {
     DriveTrain driveTrain = new DriveTrain();
     Shooter Shooter = new Shooter();
     Intake Intake = new Intake();
-    Lift Lift = new Lift();
-    ArmSubsystem m_robotArm = new ArmSubsystem();
+    Indexer Indexer = new Indexer();
+    Pivot m_robotArm = new Pivot();
 
     
     SendableChooser<Command> m_auto_chooser = new SendableChooser<>();
@@ -111,49 +108,34 @@ public class RobotContainer {
      * joysticks}.
      */
     private void configureBindings() {
-        // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-        this.buttonY.onTrue(autoShootOrAmp(true));
-        this.buttonX.onTrue(new ShooterSet(Shooter, Shooter, -Constants.Subsystems.Shooter.kPOWER)).onFalse(new ShooterStop(Shooter, Shooter));
-        this.buttonA.onTrue(new ShooterSet(Shooter, Shooter, Constants.Subsystems.Shooter.kAMPPOWER)).onFalse(new ShooterStop(Shooter, Shooter));
+        // Shooting
+        this.buttonY.onTrue(new autoSpeaker(Shooter,Indexer));
+        this.buttonB.onTrue(new autoAmp(Shooter,Indexer));
+        this.buttonX.onTrue(new ShooterRun(Shooter, -Constants.Subsystems.Shooter.pwrSpeaker)).onFalse(new ShooterStop(Shooter));
+        this.buttonA.onTrue(new ShooterRun(Shooter, Constants.Subsystems.Shooter.pwrAmp)).onFalse(new ShooterStop(Shooter));
+        
+        //Intake In
         this.rightBumper.onTrue(new IntakeForward(this.Intake)).onFalse(new IntakeStop(this.Intake));
-        this.rightBumper.onTrue(new ShooterSet(Shooter, Shooter, -Constants.Subsystems.Shooter.kPOWER)).onFalse(new ShooterStop(Shooter, Shooter));
+        this.rightBumper.onTrue(new ShooterRun(Shooter, -Constants.Subsystems.Shooter.pwrSpeaker)).onFalse(new ShooterStop(Shooter));
+        //Intake Out
         this.leftBumper.onTrue(new IntakeBackward(this.Intake)).onFalse(new IntakeStop(this.Intake));
-        // this.buttonA.onTrue(new IntakeForwardAuto(this.Intake, 1000, 0.5).andThen(new IntakeBackwardAuto(this.Intake, 1000, 0.5).andThen(new ShooterForwardAuto(this.Shooter, this.Shooter, 1000, 0.5)))).onFalse(new ParallelCommandGroup(new IntakeStop(this.Intake),new ShooterStop(this.Shooter)));
-        this.upPOV.onTrue(new LiftUp(this.Lift)).onFalse(new LiftStop(this.Lift));
-        this.downPOV.onTrue(new LiftDown(this.Lift)).onFalse(new LiftStop(this.Lift));
-        this.buttonB.onTrue(autoShootOrAmp(false));
+        
+        // Indexing
+        this.upPOV.onTrue(new IndexOut(this.Indexer)).onFalse(new IndexStop(this.Indexer));
+        this.downPOV.onTrue(new IndexIn(this.Indexer)).onFalse(new IndexStop(this.Indexer));
+        
+        //Drive Slow
         this.driverRightBumper.onTrue(new DriveTrainCommandSlower(this.driveTrain, this.driverController)).onFalse(new DriveTrainCommand(this.driveTrain, this.driverController));
-        driverButtonA.onTrue(m_robotArm.setArmGoalCommand(Constants.ArmConstants.kHome));
+        
+        //Pivot Positions
+        driverButtonA.onTrue(m_robotArm.setPivot(Constants.Pivot.kHome));
+        driverButtonB.onTrue(m_robotArm.setPivot(Constants.Pivot.kSpeaker));
+        driverButtonX.onTrue(m_robotArm.setPivot(Constants.Pivot.kAmp));
 
-        // Move the arm to neutral position when the 'B' button is pressed.
-        driverButtonB.onTrue(m_robotArm.setArmGoalCommand(Constants.ArmConstants.kSpeaker));
-        driverButtonX.onTrue(m_robotArm.setArmGoalCommand(Constants.ArmConstants.kAmp));
-
-
-        testController.a().onTrue(new ManualArm(m_robotArm, 0.2)).onFalse(new StopArm(m_robotArm));
-        testController.b().onTrue(new ManualArm(m_robotArm, -0.2)).onFalse(new StopArm(m_robotArm));
-        testController.y().onTrue(m_robotArm.ResetArmEncoder());
-       
-        /*testController
-            .a()
-            .and(testController.leftBumper())
-            .whileTrue(Shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-        testController
-            .b()
-            .and(testController.leftBumper())
-            .whileTrue(Shooter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-        testController
-            .x()
-            .and(testController.leftBumper())
-            .whileTrue(Shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
-        testController
-            .y()
-            .and(testController.leftBumper())
-            .whileTrue(Shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-        */
-
-
-
+        //Test Buttons (Controller 3)
+        testController.a().onTrue(new ManualPivot(m_robotArm, 0.2)).onFalse(new StopPivot(m_robotArm));
+        testController.b().onTrue(new ManualPivot(m_robotArm, -0.2)).onFalse(new StopPivot(m_robotArm));
+        testController.y().onTrue(m_robotArm.ResetPivot());
     }
 
 
@@ -164,130 +146,6 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         return new SequentialCommandGroup(
-            new ShooterForwardAuto(this.Shooter, this.Shooter, 3000, 0.5 ), 
-            new ParallelRaceGroup(new IntakeBackwardAuto(this.Intake, 2000, 0.5), 
-            new ShooterStop(this.Shooter, this.Shooter)), 
-            new ParallelCommandGroup(new IntakeStop(this.Intake), 
-            new DriveTrainAutoTimeBased(this.driveTrain, 1500, 0.5, 0.5))
             );
-
-        // new SequentialCommandGroup(new ShooterForwardAuto(this.Shooter, this.Shooter, 3000, 0.5), new ParallelRaceGroup(new IntakeBackwardAuto(this.Intake, 1000, 0.5), new ShooterStop(this.Shooter, this.Shooter)), new ParallelCommandGroup(new IntakeStop(this.Intake), new DriveTrainAutoTimeBased(this.driveTrain, 1500, 0.5, 0.5)));
     }
-
-    public Command autoShootOrAmp(boolean isAmp) {
-        if (isAmp == true) {
-            return new SequentialCommandGroup(
-                new ParallelRaceGroup(
-                    new LiftUp(Lift),
-                    new WaitCommand(0.5)),
-                new ParallelRaceGroup(
-                    new LiftStop(Lift),
-                    new WaitCommand(0.01)),
-                new ParallelRaceGroup(
-                    new ShooterSet(Shooter, Shooter, 0.8),
-                    new WaitCommand(1)
-                ),
-                new ParallelRaceGroup(
-                    new ShooterStop(Shooter, Shooter),
-                    new WaitCommand(0.01))
-            );
-        }
-        else {
-            return new SequentialCommandGroup(
-                new ParallelRaceGroup(
-                    new TargetFeedforward(Shooter, 20),
-                    new WaitCommand(1)
-                ),
-                new ParallelRaceGroup(
-                    new LiftUp(Lift),
-                    new WaitCommand(0.5)),
-                new ParallelRaceGroup(
-                    new ShooterStop(Shooter, Shooter),
-                    new WaitCommand(0.01)),
-                new ParallelRaceGroup(
-                    new LiftStop(Lift),
-                    new WaitCommand(0.01))
-            );
-        }
-    }
-        /*
-        return new SequentialCommandGroup(
-            new LiftUp(Lift),
-            new WaitCommand(1),
-            new LiftStop(Lift),
-            new ShooterSet(Shooter, Shooter, 0.8),
-            new WaitCommand(2),
-            new ShooterStop(Shooter, Shooter)
-        );*/
-    
-    
-    // private void buildShuffleboard(){
-    //     buildDriverTab();
-    // }
-    
-    // private void buildDriverTab(){
-    //     ShuffleboardTab driveTab = Shuffleboard.getTab("Autos");
-    //     m_auto_chooser = new SendableChooser<Command>();
-
-    //     m_auto_chooser.setDefaultOption("Drive Past Line", new SequentialCommandGroup(
-    //         new DriveTrainAutoTimeBased(this.driveTrain, 1500, 0.5,0.5)));
-
-    //     m_auto_chooser.addOption("test- Side Shooter", 
-    //     new SequentialCommandGroup(
-    //         new ShooterForwardAuto(this.Shooter, this.Shooter, 1000, 0.5), 
-    //         new ParallelRaceGroup(new IntakeBackwardAuto(this.Intake, 400, 0.5), 
-    //         new ShooterStop(this.Shooter, this.Shooter)), 
-    //         new ParallelCommandGroup(new IntakeStop(this.Intake), 
-    //         new DriveTrainAutoTimeBased(this.driveTrain, 1000, 0.5, 0.5))
-    //         ));
-    //     // new ParallelCommandGroup(
-    //      //   new IntakeForwardAuto(this.Intake, 1000, 0.5), 
-    //        // new ShooterForwardAuto(this.Shooter, this.Shooter, 1000, 0.5)));
-
-    //     m_auto_chooser.addOption("Only Use This One Unless You Feel Adventurous", 
-    //     new SequentialCommandGroup(
-    //         new ShooterForwardAuto(this.Shooter, this.Shooter, 3000, 0.6 ), 
-    //         new ParallelRaceGroup(new IntakeBackwardAuto(this.Intake, 1000, 0.5), 
-    //         new ShooterStop(this.Shooter, this.Shooter)), 
-    //         new ParallelCommandGroup(new IntakeStop(this.Intake), 
-    //         new DriveTrainAutoTimeBased(this.driveTrain, 1500, 0.5, 0.5))
-    //         ));
-
-    //     m_auto_chooser.addOption("Intesting left shoot", 
-    //     new SequentialCommandGroup(
-    //         new ShooterForwardAuto(this.Shooter, this.Shooter, 3000, 0.6), 
-    //         new ParallelRaceGroup(new IntakeBackwardAuto(this.Intake, 1000, 0.5), 
-    //         new ShooterStop(this.Shooter, this.Shooter).withTimeout(10),
-    //         new WaitCommand(10)),
-    //         new ParallelRaceGroup (new DriveTrainAutoTimeBased(this.driveTrain, 1500, 0.5, 0.5).withTimeout(2),
-    //         new WaitCommand(2)),
-    //         new WaitCommand(0.5), 
-    //         new ParallelRaceGroup (new DriveTrainAutoTimeBased(this.driveTrain, 1500, 0, 0.5).withTimeout(2),
-    //         new WaitCommand(2)),
-    //         new WaitCommand(0.5),
-    //         new ParallelCommandGroup(new IntakeStop(this.Intake), 
-    //         new DriveTrainAutoTimeBased(this.driveTrain, 1500, 0.5, 0.5))
-    //         ));
-    
-    //     m_auto_chooser.addOption("Center Shoot, Move, Pickup, Move, Shoot", 
-    //     new SequentialCommandGroup(
-    //         new ParallelCommandGroup(
-    //         new IntakeForwardAuto(this.Intake, 1000, 0.5), 
-    //         new ShooterForwardAuto(this.Shooter, this.Shooter, 1000, 0.5))
-    //         ,
-    //         new DriveTrainAutoTimeBased(this.driveTrain, 5000, 0.5, 0.5),
-    //         new IntakeForwardAuto(this.Intake, 1000, 0.5), 
-    //         new IntakeBackwardAuto(this.Intake, 1000, 0.5), 
-    //         new ShooterForwardAuto(this.Shooter, this.Shooter, 1000, 0.5),
-    //         new DriveTrainAutoTimeBased(this.driveTrain, 5000, 0.5,0.5),
-    //         new ShooterForwardAuto(this.Shooter, this.Shooter, 1000, 0.5)));
-
-    //     m_auto_chooser.addOption("Pickup Sequence", 
-    //     new SequentialCommandGroup(
-    //         new IntakeForwardAuto(this.Intake, 1000, 0.5), 
-    //         new IntakeBackwardAuto(this.Intake, 1000, 0.5), 
-    //         new ShooterForwardAuto(this.Shooter, this.Shooter, 1000, 0.5)));
-    //     driveTab.add("Autonomous Chooser", m_auto_chooser).withWidget(BuiltInWidgets.kComboBoxChooser).withPosition(0, 0).withSize(2, 1);
-    // }
-
 }

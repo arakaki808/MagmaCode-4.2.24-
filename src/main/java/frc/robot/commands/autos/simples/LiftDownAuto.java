@@ -1,17 +1,17 @@
 package frc.robot.commands.autos.simples;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.Lift;
+import frc.robot.subsystems.Indexer;
 
 
 public class LiftDownAuto extends Command {
 
 
     private double power, duration;
-    private Lift Lift;
+    private Indexer Lift;
 
 
-    public LiftDownAuto(Lift Lift, double duration, double power) {
+    public LiftDownAuto(Indexer Lift, double duration, double power) {
         this.Lift = Lift;
         this.duration = duration;
         this.power = power;

@@ -20,17 +20,17 @@ import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.SparkRelativeEncoder;
 
 /** A robot arm subsystem that moves with a motion profile. */
-public class ArmSubsystem extends TrapezoidProfileSubsystem {
+public class Pivot extends TrapezoidProfileSubsystem {
   private final CANSparkMax m_leftmotor =
-      new CANSparkMax(Constants.ArmConstants.kLeftMotorPort,MotorType.kBrushless);
+      new CANSparkMax(Constants.canID.leftPivot,MotorType.kBrushless);
   
   private final CANSparkMax m_rightmotor =
-      new CANSparkMax(Constants.ArmConstants.kRightMotorPort,MotorType.kBrushless);
+      new CANSparkMax(Constants.canID.rightPivot,MotorType.kBrushless);
   
   private final ArmFeedforward m_feedforward =
       new ArmFeedforward(
-          Constants.ArmConstants.kSVolts, Constants.ArmConstants.kGVolts,
-          Constants.ArmConstants.kVVoltSecondPerRad, Constants.ArmConstants.kAVoltSecondSquaredPerRad);
+          Constants.Pivot.kSVolts, Constants.Pivot.kGVolts,
+          Constants.Pivot.kVVoltSecondPerRad, Constants.Pivot.kAVoltSecondSquaredPerRad);
   public SparkPIDController m_pidController;
   private final RelativeEncoder m_leftencoder = 
       m_leftmotor.getEncoder(SparkRelativeEncoder.Type.kHallSensor, 42);
@@ -39,10 +39,10 @@ public class ArmSubsystem extends TrapezoidProfileSubsystem {
 
 
   /** Create a new ArmSubsystem. */
-  public ArmSubsystem() {
+  public Pivot() {
     super(
         new TrapezoidProfile.Constraints(
-            Constants.ArmConstants.kMaxVelocityRadPerSecond, Constants.ArmConstants.kMaxAccelerationRadPerSecSquared)
+            Constants.Pivot.kMaxVelocityRadPerSecond, Constants.Pivot.kMaxAccelerationRadPerSecSquared)
         );
         m_pidController = m_leftmotor.getPIDController();
         m_pidController.setFeedbackDevice(m_leftencoder);
@@ -52,12 +52,12 @@ public class ArmSubsystem extends TrapezoidProfileSubsystem {
         m_leftmotor.setInverted(true);
 
         // set PID coefficients
-        m_pidController.setP(Constants.ArmConstants.kP);
-        m_pidController.setI(Constants.ArmConstants.kI);
-        m_pidController.setD(Constants.ArmConstants.kD);
-        m_pidController.setIZone(Constants.ArmConstants.kIz);
-        m_pidController.setFF(Constants.ArmConstants.kFF);
-        m_pidController.setOutputRange(Constants.ArmConstants.kMinOutput, Constants.ArmConstants.kMaxOutput);
+        m_pidController.setP(Constants.Pivot.kP);
+        m_pidController.setI(Constants.Pivot.kI);
+        m_pidController.setD(Constants.Pivot.kD);
+        m_pidController.setIZone(Constants.Pivot.kIz);
+        m_pidController.setFF(Constants.Pivot.kFF);
+        m_pidController.setOutputRange(Constants.Pivot.kMinOutput, Constants.Pivot.kMaxOutput);
         SmartDashboard.getNumber("encoder", this.m_leftencoder.getPosition());
   }
   
@@ -71,21 +71,21 @@ public class ArmSubsystem extends TrapezoidProfileSubsystem {
         ControlType.kPosition, 0, feedforward);
   }
 
-  public Command setArmGoalCommand(double ksetPoint) {
+  public Command setPivot(double ksetPoint) {
     SmartDashboard.getNumber("Setpoint", ksetPoint);
     return Commands.runOnce(() -> setGoal(ksetPoint),this);
   }
 
-  public void ManualArm(double power) {
+  public void ManualPivot(double power) {
     m_leftmotor.set(power);
 
   }
 
-  public void StopArm() {
+  public void StopPivot() {
     m_leftmotor.stopMotor();
   }
 
-  public Command ResetArmEncoder() {
+  public Command ResetPivot() {
     return run(
       () -> {
       m_leftencoder.setPosition(0);

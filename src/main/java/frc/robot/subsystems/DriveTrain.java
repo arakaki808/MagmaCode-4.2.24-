@@ -6,6 +6,8 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+
 import java.lang.Math;
 
 import com.revrobotics.CANSparkMax;
@@ -29,10 +31,10 @@ public class DriveTrain extends SubsystemBase {
 
     public DriveTrain() {
 
-        this.frontLeftDriveMotor = new CANSparkMax(1, MotorType.kBrushless);
-        this.rearLeftDriveMotor = new CANSparkMax(2, MotorType.kBrushless);
-        this.frontRightDriveMotor = new CANSparkMax(3, MotorType.kBrushless);
-        this.rearRightDriveMotor = new CANSparkMax(4, MotorType.kBrushless);
+        this.frontLeftDriveMotor = new CANSparkMax(Constants.canID.frontLeftDriveMotor, MotorType.kBrushless);
+        this.rearLeftDriveMotor = new CANSparkMax(Constants.canID.rearLeftDriveMotor, MotorType.kBrushless);
+        this.frontRightDriveMotor = new CANSparkMax(Constants.canID.frontRightDriveMotor, MotorType.kBrushless);
+        this.rearRightDriveMotor = new CANSparkMax(Constants.canID.rearRightDriveMotor, MotorType.kBrushless);
 
 
         this.frontLeftDriveMotor.restoreFactoryDefaults();

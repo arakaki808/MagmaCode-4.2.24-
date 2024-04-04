@@ -1,12 +1,14 @@
-package frc.robot.commands.arm;
+package frc.robot.commands.Pivot;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.Pivot;
 
-public class StopArm extends Command {
-    private ArmSubsystem arm;
+public class ManualPivot extends Command {
+    private double power;
+    private Pivot arm;
 
-    public StopArm(ArmSubsystem arm) {
+    public ManualPivot(Pivot arm, double power) {
+        this.power = power;
         this.arm = arm;
         addRequirements(arm);
     }
@@ -16,7 +18,7 @@ public class StopArm extends Command {
     }
 
     public void execute() {
-        arm.StopArm();
+        arm.ManualPivot(power);
     }
 
     public boolean isFinished() {

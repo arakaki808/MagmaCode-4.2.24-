@@ -1,23 +1,21 @@
-package frc.robot.commands.autos.simples;
+package frc.robot.commands.shooter;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Shooter;
 
 
-public class ShooterBackwardAuto extends Command {
+public class timedShooter extends Command {
 
 
     private double power, duration;
-    private final Shooter ShooterMotor1, ShooterMotor2;
+    private final Shooter ShooterMotor1;
 
 
-    public ShooterBackwardAuto(Shooter ShooterMotor1, Shooter ShooterMotor2, double duration, double power) {
+    public timedShooter(Shooter ShooterMotor1, double power, double duration) {
         this.ShooterMotor1 = ShooterMotor1;
-        this.ShooterMotor2 = ShooterMotor2;
-        this.duration = duration;
         this.power = power;
+        this.duration=duration;
         addRequirements(ShooterMotor1);
-        addRequirements(ShooterMotor2);
 
     }
 
@@ -32,29 +30,21 @@ public class ShooterBackwardAuto extends Command {
 
     // called repeatedly when this Command is scheduled to run
     public void execute() {
-        this.ShooterMotor1.ShooterMotor1Backward(this.power);
-        this.ShooterMotor2.ShooterMotor1Forward(this.power);
+        this.ShooterMotor1.timedShooter(this.power);
     }
 
 
     // make this return true when this Command no longer needs to run execute()
-    // checks if the time has passed the set duration
     public boolean isFinished() {
         return System.currentTimeMillis() >= this.duration;
     }
 
-
     // called once after isFinished returns true
-    // drive train is stopped
     protected void end() {
-        this.ShooterMotor1.ShooterMotor1Stop();
-        this.ShooterMotor2.ShooterMotor2Stop();
+        this.ShooterMotor1.ShooterStop();
     }
-
 
     protected void interrupted() {
         this.end();
-    }
-
-    
+    } 
 }
